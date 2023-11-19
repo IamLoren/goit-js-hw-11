@@ -10,13 +10,16 @@ const galleryBox = document.querySelector('.gallery');
 const input = document.querySelector('input');
 const loadMoreButton = document.querySelector('.load-more');
 let userInput;
+let perPage = 40;
 let page;
 let totalAmountOfPhoto = 0;
 let arrOfPhotos = [];
 
-async function getData(userInput, page) {
+loadMoreButton.classList.add('is-hidden');
+
+async function getData(userInput, page, perPage) {
   try {
-    const response = await getPhotos(userInput, page);
+    const response = await getPhotos(userInput, page, perPage);
     totalAmountOfPhoto = response.totalHits;
     arrOfPhotos = response.hits;
     galleryBox.insertAdjacentHTML('beforeend', createGalleryCards(arrOfPhotos));
@@ -33,16 +36,25 @@ async function getData(userInput, page) {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  loadMoreButton.classList.add('is-hidden');
   page = 1;
   galleryBox.innerHTML = '';
-  userInput = input.value;
-  await getData(userInput, page);
+  userInput = input.value.trim();
+  if (!userInput) {
+    Notiflix.Notify.failure(
+      'Sorry, you can`t submit the empty query. Please type the text.'
+    );
+    return;
+  }
+  await getData(userInput, page, perPage);
+  console.log(arrOfPhotos.length);
   if (arrOfPhotos.length === 0) {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
-    loadMoreButton.classList.add('is-hidden');
+    return;
+  } 
+ if(arrOfPhotos.length < perPage) {
+    Notiflix.Notify.success(`Hooray! We found ${totalAmountOfPhoto} images.`);
   } else {
     Notiflix.Notify.success(`Hooray! We found ${totalAmountOfPhoto} images.`);
     loadMoreButton.classList.remove('is-hidden');
@@ -51,7 +63,7 @@ form.addEventListener('submit', async event => {
 
 loadMoreButton.addEventListener('click', async () => {
   page += 1;
-  await getData(userInput, page);
+  await getData(userInput, page, perPage);
 
   const { height: cardHeight } = document
   .querySelector(".gallery")
@@ -62,10 +74,10 @@ window.scrollBy({
   behavior: "smooth",
 });
 
-  if (arrOfPhotos.length === 0) {
+  if (arrOfPhotos.length < perPage) {
     Notiflix.Notify.info(
       `We're sorry, but you've reached the end of search results.`
     );
     loadMoreButton.classList.add('is-hidden');
-  }
+  } 
 });
