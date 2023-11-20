@@ -22,8 +22,15 @@ async function getData(userInput, page, perPage) {
     const response = await getPhotos(userInput, page, perPage);
     totalAmountOfPhoto = response.totalHits;
     arrOfPhotos = response.hits;
+    const lastPage = Math.ceil(totalAmountOfPhoto / perPage);
+    if (lastPage === page) {
+      Notiflix.Notify.info(
+        `We're sorry, but you've reached the end of search results.`
+      );
+      loadMoreButton.classList.add('is-hidden');
+    }
     galleryBox.insertAdjacentHTML('beforeend', createGalleryCards(arrOfPhotos));
-    var lightbox = new SimpleLightbox('.gallery a', {
+    const lightbox = new SimpleLightbox('.gallery a', {
       captions: true,
       captionPosition: 'bottom',
       captionDelay: 250,
@@ -51,10 +58,12 @@ form.addEventListener('submit', async event => {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
+    loadMoreButton.classList.add('is-hidden');
     return;
   } 
  if(arrOfPhotos.length < perPage) {
     Notiflix.Notify.success(`Hooray! We found ${totalAmountOfPhoto} images.`);
+    loadMoreButton.classList.add('is-hidden');
   } else {
     Notiflix.Notify.success(`Hooray! We found ${totalAmountOfPhoto} images.`);
     loadMoreButton.classList.remove('is-hidden');
@@ -73,11 +82,4 @@ window.scrollBy({
   top: cardHeight * 2,
   behavior: "smooth",
 });
-
-  if (arrOfPhotos.length < perPage) {
-    Notiflix.Notify.info(
-      `We're sorry, but you've reached the end of search results.`
-    );
-    loadMoreButton.classList.add('is-hidden');
-  } 
 });
